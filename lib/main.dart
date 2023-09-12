@@ -1,5 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:locus/src/controllers/theme/theme_cubit.dart';
+import 'package:locus/src/models/theme.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
@@ -8,6 +14,13 @@ Future<void> main() async {
 
   // Makes sure Flutter is initialised properly
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Setting up HydratedBloc
+  HydratedBloc.storage = await HydratedStorage.build(
+    storageDirectory: kIsWeb
+        ? HydratedStorage.webStorageDirectory
+        : await getApplicationDocumentsDirectory(),
+  );
 
   // Initialise Supabase backend
   await Supabase.initialize(
@@ -24,23 +37,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        fontFamily: 'Aleo',
-        primaryColor: Color(0xFFFB8B24),
-        colorScheme:
-            ThemeData(brightness: Brightness.dark).colorScheme.copyWith(
-                  // brightness: Brightness.dark,
-                  secondary: Color(0xC40208FC),
-                  tertiary: Color(0x40DADFF7),
-                  error: Color(0xFFBB342F),
-                  //success: Color(0xFF48BB78),
-                ),
-        useMaterial3: true,
+    final themeCubit = ThemeCubit();
+    return BlocBuilder<ThemeCubit, LocusTheme>(
+      bloc: themeCubit,
+      builder: (c, s) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        themeAnimationCurve: Curves.easeOutExpo,
+        themeAnimationDuration: const Duration(milliseconds: 250),
+        title: 'Locus',
+        theme: s.theme,
+        home: BlocProvider.value(
+          value: themeCubit,
+          child: const MyHomePage(),
+        ),
       ),
-      home: const MyHomePage(),
     );
   }
 }
@@ -56,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.tertiary,
+      // backgroundColor: Theme.of(context).colorScheme.tertiary,
       appBar: AppBar(
         backgroundColor: Theme.of(context).primaryColor,
         title: const Text(
@@ -67,6 +77,15 @@ class _MyHomePageState extends State<MyHomePage> {
             fontStyle: FontStyle.italic,
           ),
         ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              BlocProvider.of<ThemeCubit>(context).toggleTheme();
+            },
+            icon: const Icon(Icons.contrast_sharp),
+            tooltip: 'Toggle theme',
+          ),
+        ],
       ),
       body: Center(
         child: Column(
