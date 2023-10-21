@@ -8,6 +8,8 @@ import 'package:locus/src/models/theme.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'src/screens/onboarding_screen.dart';
+
 Future<void> main() async {
   // Get all environment variables
   await dotenv.load();
@@ -48,7 +50,7 @@ class MyApp extends StatelessWidget {
         theme: s.theme,
         home: BlocProvider.value(
           value: themeCubit,
-          child: const MyHomePage(),
+          child: const OnboardingScreen(),
         ),
       ),
     );

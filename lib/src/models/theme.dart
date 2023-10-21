@@ -12,16 +12,17 @@ enum ThemeType { light, dark }
 @JsonSerializable()
 class LocusTheme extends Equatable {
   final ThemeData theme;
-  
+
   final ThemeType type;
 
   LocusTheme(this.type)
       : theme = type == ThemeType.dark ? _DARK_THEME : _LIGHT_THEME;
 
-  factory LocusTheme.fromJson(Map<String, dynamic> json) => _$LocusThemeFromJson(json);
+  factory LocusTheme.fromJson(Map<String, dynamic> json) =>
+      _$LocusThemeFromJson(json);
 
   Map<String, dynamic> toJson() => _$LocusThemeToJson(this);
-  
+
   @override
   List<Object?> get props => [theme, type];
 }
@@ -30,6 +31,11 @@ class LocusTheme extends Equatable {
 final _DARK_THEME = ThemeData(
   fontFamily: 'Aleo',
   primaryColor: const Color(0xFFFB8B24),
+  textTheme: Typography(platform: TargetPlatform.android).black.apply(
+    fontFamily: 'Aleo',
+    bodyColor: Colors.grey.shade800,
+    displayColor: Colors.grey.shade800,
+  ),
   colorScheme: ThemeData(brightness: Brightness.dark).colorScheme.copyWith(
         secondary: const Color(0xC40208FC),
         tertiary: const Color(0x40DADFF7),
@@ -43,6 +49,11 @@ final _DARK_THEME = ThemeData(
 final _LIGHT_THEME = ThemeData(
   fontFamily: 'Aleo',
   primaryColor: const Color(0xFFFB8B24),
+  textTheme: Typography(platform: TargetPlatform.android).black.apply(
+    fontFamily: 'Aleo',
+    bodyColor: Colors.grey.shade800,
+    displayColor: Colors.grey.shade800,
+  ),
   colorScheme: ThemeData(brightness: Brightness.light).colorScheme.copyWith(
         secondary: const Color(0xC40208FC),
         tertiary: const Color(0x40DADFF7),
