@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../main.dart';
+import '../../controllers/theme/theme_cubit.dart';
 import '../util/custom_text_form_field.dart';
 
 class SetUsernameForm extends StatefulWidget {
@@ -83,7 +85,10 @@ class _SetUsernameFormState extends State<SetUsernameForm> {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const MyHomePage(),
+                    builder: (_) => BlocProvider(
+                      create: (c) => c.read<ThemeCubit>(),
+                      child: const MyHomePage(),
+                    ),
                   ),
                   (_) => false,
                 );

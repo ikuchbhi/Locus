@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/onboarding/login_form.dart';
 import 'sign_up_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -161,7 +162,26 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                 ),
                               ),
                             ),
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                ModalBottomSheetRoute(
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(25),
+                                      topRight: Radius.circular(25),
+                                    ),
+                                  ),
+                                  builder: (_) => const LoginForm(),
+                                  isScrollControlled: true,
+                                  backgroundColor: Theme.of(context)
+                                      .primaryColor
+                                      .withAlpha(175),
+                                  enableDrag: true,
+                                  useSafeArea: true,
+                                ),
+                              );
+                            },
                             child: const Text("Login"),
                           ),
                         ),

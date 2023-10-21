@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../main.dart';
 import '../widgets/onboarding/set_username_form.dart';
 import '../widgets/onboarding/sign_up_form.dart';
 import '../widgets/onboarding/verify_email_with_token_form.dart';
@@ -47,7 +46,6 @@ class _SignUpScreenState extends State<SignUpScreen>
       ),
       VerifyEmailWithTokenForm(_currentPage),
       const SetUsernameForm(),
-      const MyHomePage(),
     ];
   }
 
