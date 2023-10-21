@@ -16,7 +16,7 @@ class _LoginFormState extends State<LoginForm> {
   late final TextEditingController emailUsernameController;
   late final TextEditingController passwordController;
 
-  static const _viewportFraction = 0.6;
+  static const _viewportFraction = 0.65;
 
   @override
   void initState() {
@@ -93,6 +93,24 @@ class _LoginFormState extends State<LoginForm> {
                       ),
                     ),
                     CustomPasswordField(passwordController),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16.0),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: InkWell(
+                          splashColor: Theme.of(context).colorScheme.tertiary,
+                          borderRadius: BorderRadius.circular(5),
+                          child: const Text(
+                            "Forgot Password?",
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.w100,
+                            ),
+                          ),
+                          onTap: () {},
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     SizedBox(
                       width: MediaQuery.of(context).size.width,
@@ -122,13 +140,17 @@ class _LoginFormState extends State<LoginForm> {
                         child: Text(
                           "Login",
                           style: TextStyle(
-                              color: Colors.grey.shade50, fontSize: 16),
+                            color: Colors.grey.shade50,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 6),
                     const Divider(
-                        color: Colors.black, indent: 24, endIndent: 24),
+                      color: Colors.black,
+                      indent: 24,
+                      endIndent: 24,
+                    ),
                     const SizedBox(height: 6),
                     SizedBox(
                       width: MediaQuery.of(context).size.width,
