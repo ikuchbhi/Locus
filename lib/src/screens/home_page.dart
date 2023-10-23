@@ -112,9 +112,9 @@ class _MyHomePageState extends State<MyHomePage> {
           PopupMenuButton(
             itemBuilder: (c) => [
               PopupMenuItem(
-                child: ListTile(
-                  leading: const Icon(Icons.person_pin_circle_rounded),
-                  title: const Text("Profile"),
+                child: const ListTile(
+                  leading: Icon(Icons.person_pin_circle_rounded),
+                  title: Text("Profile"),
                 ),
                 onTap: () => Navigator.push(
                   c,
@@ -124,9 +124,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
               PopupMenuItem(
-                child: ListTile(
-                  leading: const Icon(Icons.settings),
-                  title: const Text("Settings"),
+                child: const ListTile(
+                  leading: Icon(Icons.settings),
+                  title: Text("Settings"),
                 ),
                 onTap: () => Navigator.push(
                   c,
@@ -136,9 +136,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
               PopupMenuItem(
-                child: ListTile(
-                  leading: const Icon(Icons.logout_rounded),
-                  title: const Text("Logout"),
+                child: const ListTile(
+                  leading: Icon(Icons.logout_rounded),
+                  title: Text("Logout"),
                 ),
                 onTap: () => Navigator.pushAndRemoveUntil(
                   context,
