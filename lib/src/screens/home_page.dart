@@ -6,7 +6,10 @@ import '../widgets/home/locus_image_only_post.dart';
 import '../widgets/home/locus_image_with_caption_post.dart';
 import '../widgets/home/locus_post.dart';
 import '../widgets/home/locus_text_only_post.dart';
+import 'onboarding_screen.dart';
+import 'profile_screen.dart';
 import 'search_screen.dart';
+import 'settings_screen.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -41,7 +44,8 @@ class _MyHomePageState extends State<MyHomePage> {
         (i) => LocusImageWithCaptionPost(
           context: context,
           url: "https://picsum.photos/id/${10 * i}/300/",
-          caption: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur placerat est id nisi volutpat pulvinar. Nulla facilisi.",
+          caption:
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur placerat est id nisi volutpat pulvinar. Nulla facilisi.",
         ),
       ),
     ];
@@ -104,6 +108,49 @@ class _MyHomePageState extends State<MyHomePage> {
             },
             icon: const Icon(Icons.search_rounded),
             tooltip: 'Search',
+          ),
+          PopupMenuButton(
+            itemBuilder: (c) => [
+              PopupMenuItem(
+                child: ListTile(
+                  leading: const Icon(Icons.person_pin_circle_rounded),
+                  title: const Text("Profile"),
+                ),
+                onTap: () => Navigator.push(
+                  c,
+                  MaterialPageRoute(
+                    builder: (_) => const ProfileScreen(),
+                  ),
+                ),
+              ),
+              PopupMenuItem(
+                child: ListTile(
+                  leading: const Icon(Icons.settings),
+                  title: const Text("Settings"),
+                ),
+                onTap: () => Navigator.push(
+                  c,
+                  MaterialPageRoute(
+                    builder: (_) => const SettingsScreen(),
+                  ),
+                ),
+              ),
+              PopupMenuItem(
+                child: ListTile(
+                  leading: const Icon(Icons.logout_rounded),
+                  title: const Text("Logout"),
+                ),
+                onTap: () => Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const OnboardingScreen(),
+                  ),
+                  (_) => false,
+                ),
+              ),
+            ],
+            icon: const Icon(Icons.more_vert_rounded),
+            tooltip: "More Options",
           ),
         ],
       ),
