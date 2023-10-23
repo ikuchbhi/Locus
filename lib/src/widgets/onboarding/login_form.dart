@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../main.dart';
+import '../../screens/home_page.dart';
 import '../util/custom_password_field.dart';
 import '../util/custom_text_form_field.dart';
 import 'google_sign_in_button.dart';

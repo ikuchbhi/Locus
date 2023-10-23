@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../main.dart';
 import '../../controllers/theme/theme_cubit.dart';
+import '../../screens/home_page.dart';
 import '../util/custom_text_form_field.dart';
 
 class SetUsernameForm extends StatefulWidget {
