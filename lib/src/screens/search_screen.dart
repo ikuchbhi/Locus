@@ -36,6 +36,7 @@ class _SearchScreenState extends State<SearchScreen>
 
   @override
   Widget build(BuildContext context) {
+    final query = ModalRoute.of(context)!.settings.arguments as String;
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kBottomNavigationBarHeight * 2),
@@ -55,6 +56,7 @@ class _SearchScreenState extends State<SearchScreen>
                 onTap: () => showSearch(
                   context: context,
                   delegate: LocusSearchDelegate(),
+                  query: query,
                 ),
                 side: MaterialStateProperty.resolveWith(
                   (_) => BorderSide(width: 2, color: Colors.grey.shade600),
@@ -65,6 +67,7 @@ class _SearchScreenState extends State<SearchScreen>
                   ),
                 ),
                 hintText: "Search for users/locations...",
+                controller: TextEditingController()..text = query,
                 backgroundColor: MaterialStateProperty.resolveWith(
                   (_) => Colors.grey.shade50,
                 ),
@@ -236,7 +239,7 @@ class LocusSearchDelegate extends SearchDelegate {
 
   @override
   Widget? buildLeading(BuildContext context) => IconButton(
-        onPressed: () => Navigator.pop(context, query),
+        onPressed: () => close(context, query.trim().isEmpty ? null : query),// Navigator.pop(context, query.trim().isEmpty ? null : query),
         icon: const Icon(Icons.arrow_back_outlined),
       );
 
