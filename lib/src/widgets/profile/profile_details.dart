@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../screens/view_follow_screen.dart';
 import 'display_number_button.dart';
 
 class ProfileDetails extends StatelessWidget {
@@ -56,12 +57,22 @@ class ProfileDetails extends StatelessWidget {
                   DisplayNumberButton(
                     225,
                     "Followers",
-                    onTap: () {},
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (c) => const ViewFollowScreen("View Followers"),
+                      ),
+                    ),
                   ),
                   DisplayNumberButton(
                     250,
                     "Following",
-                    onTap: () {},
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (c) => const ViewFollowScreen("View Following"),
+                      ),
+                    ),
                   ),
                 ],
               ),
