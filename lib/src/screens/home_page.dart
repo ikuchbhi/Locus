@@ -6,6 +6,7 @@ import '../widgets/home/locus_image_only_post.dart';
 import '../widgets/home/locus_image_with_caption_post.dart';
 import '../widgets/home/locus_post.dart';
 import '../widgets/home/locus_text_only_post.dart';
+import 'add_moment_screen.dart';
 import 'onboarding_screen.dart';
 import 'profile_screen.dart';
 import 'search_screen.dart';
@@ -182,6 +183,31 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (c, a, sa) => const AddMomentScreen(),
+            transitionDuration: const Duration(milliseconds: 300),
+            transitionsBuilder: (c, a, sa, child) {
+              final offset = Tween<Offset>(
+                end: Offset.zero,
+                begin: const Offset(0, 1.0),
+              ).chain(CurveTween(curve: Curves.easeInOut));
+
+              return SlideTransition(
+                position: a.drive(offset),
+                child: child,
+              );
+            },
+            fullscreenDialog: true,
+          ),
+        ),
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+        enableFeedback: true,
+        tooltip: "Add Moment",
+        child: const Icon(Icons.add),
       ),
     );
   }
