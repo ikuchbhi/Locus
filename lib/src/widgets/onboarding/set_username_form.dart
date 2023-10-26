@@ -30,39 +30,61 @@ class _SetUsernameFormState extends State<SetUsernameForm> {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Text(
-            "Set Username",
+            "Set Username and Name",
             style: Theme.of(context).textTheme.headlineSmall!.apply(
                   color: Colors.grey.shade800,
                 ),
           ),
           const SizedBox(height: 24),
           Text(
-            "Enter a username to sign in",
+            "Enter a username (and optionally set your name) to sign in",
             style: Theme.of(context).textTheme.bodyLarge,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
           Form(
             key: _formKey,
-            child: CustomTextFormField(
-              "Username",
-              TextFormField(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade600,
-                      width: 2.0,
+            child: Column(
+              children: [
+                CustomTextFormField(
+                  "Username",
+                  TextFormField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade600,
+                          width: 2.0,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade600,
+                          width: 2.0,
+                        ),
+                      ),
                     ),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade600,
-                      width: 2.0,
-                    ),
-                  ),
-                  // errorText: hasError ? "That username is taken!" : null,
                 ),
-              ),
+                CustomTextFormField(
+                  "Name",
+                  TextFormField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade600,
+                          width: 2.0,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade600,
+                          width: 2.0,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           SizedBox(
@@ -94,7 +116,7 @@ class _SetUsernameFormState extends State<SetUsernameForm> {
                 );
               },
               child: Text(
-                "Set Username",
+                "Set Username and Name",
                 style: TextStyle(color: Colors.grey.shade50, fontSize: 16),
               ),
             ),
