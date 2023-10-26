@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../widgets/home/locus_image_only_post.dart';
 import '../widgets/home/locus_image_with_caption_post.dart';
 import '../widgets/home/locus_text_only_post.dart';
-import '../widgets/profile/places.dart';
 import '../widgets/profile/profile_details.dart';
 import '../widgets/profile/profile_options_sliver_delegate.dart';
+import '../widgets/profile/view_locus.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -88,7 +88,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   itemCount: moments.length,
                 ),
                 // TODO: Map View
-                const ProfilePlaces(),
+                const ViewLocusScreen(),
               ],
             ),
           ),
