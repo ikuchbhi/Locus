@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../controllers/auth/auth_cubit.dart';
 
 class GoogleSignInButton extends StatelessWidget {
   const GoogleSignInButton({super.key});
-
   @override
+
   Widget build(BuildContext context) {
+    final authCubit = context.read<AuthCubit>();
     return SizedBox(
       // width: MediaQuery.of(context).size.width * 0.5,
       child: ElevatedButton(
@@ -24,7 +28,7 @@ class GoogleSignInButton extends StatelessWidget {
             ),
           ),
         ),
-        onPressed: () {},
+        onPressed: () async => await authCubit.loginViaGoogle(),
         child: Center(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

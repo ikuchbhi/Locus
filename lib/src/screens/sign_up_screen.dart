@@ -44,8 +44,8 @@ class _SignUpScreenState extends State<SignUpScreen>
         _passwordController,
         _tnc,
       ),
-      VerifyEmailWithTokenForm(_currentPage),
-      const SetUsernameForm(),
+      VerifyEmailWithTokenForm(_currentPage, _emailController),
+      SetUsernameForm(_emailController),
     ];
   }
 

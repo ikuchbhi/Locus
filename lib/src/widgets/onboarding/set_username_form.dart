@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../controllers/auth/auth_cubit.dart';
 import '../../controllers/theme/theme_cubit.dart';
 import '../../screens/home_page.dart';
 import '../util/custom_text_form_field.dart';
 
 class SetUsernameForm extends StatefulWidget {
-  const SetUsernameForm({super.key});
+  final TextEditingController emailController;
+  
+  const SetUsernameForm(
+    this.emailController, {
+    super.key,
+  });
 
   @override
   State<SetUsernameForm> createState() => _SetUsernameFormState();
@@ -14,15 +20,23 @@ class SetUsernameForm extends StatefulWidget {
 
 class _SetUsernameFormState extends State<SetUsernameForm> {
   late GlobalKey<FormState> _formKey;
+  late TextEditingController usernameController;
+  late TextEditingController nameController;
 
   @override
   void initState() {
     super.initState();
     _formKey = GlobalKey<FormState>();
+    usernameController = TextEditingController();
+    nameController = TextEditingController();
   }
 
   @override
   Widget build(BuildContext context) {
+    final authCubit = AuthCubit(
+      context.read(),
+      context.read(),
+    );
     return SingleChildScrollView(
       primary: true,
       physics: const ClampingScrollPhysics(),
@@ -49,6 +63,8 @@ class _SetUsernameFormState extends State<SetUsernameForm> {
                 CustomTextFormField(
                   "Username",
                   TextFormField(
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    controller: usernameController,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderSide: BorderSide(
@@ -68,6 +84,7 @@ class _SetUsernameFormState extends State<SetUsernameForm> {
                 CustomTextFormField(
                   "Name",
                   TextFormField(
+                    controller: nameController,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderSide: BorderSide(
@@ -103,17 +120,25 @@ class _SetUsernameFormState extends State<SetUsernameForm> {
                   (_) => Theme.of(context).colorScheme.secondary,
                 ),
               ),
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider(
-                      create: (c) => c.read<ThemeCubit>(),
-                      child: const MyHomePage(),
-                    ),
-                  ),
-                  (_) => false,
-                );
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  _formKey.currentState!.save();
+                  await authCubit.updateUsernameAndName(
+                    widget.emailController.text,
+                    usernameController.text,
+                    nameController.text,
+                  );
+                  // Navigator.pushAndRemoveUntil(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (_) => BlocProvider(
+                  //       create: (c) => c.read<ThemeCubit>(),
+                  //       child: const MyHomePage(),
+                  //     ),
+                  //   ),
+                  //   (_) => false,
+                  // );
+                }
               },
               child: Text(
                 "Set Username and Name",

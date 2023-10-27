@@ -48,7 +48,11 @@ android {
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
+        multiDexEnabled true
         versionName flutterVersionName
+        manifestPlaceholders += [
+            'appAuthRedirectScheme': 'com.googleusercontent.apps.699989929783-2r96r88uf5dij1bt5qgleevjjqotjr4u://'
+        ]
     }
 
     buildTypes {

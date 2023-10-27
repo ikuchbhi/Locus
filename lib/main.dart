@@ -1,14 +1,18 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:locus/src/controllers/theme/theme_cubit.dart';
 import 'package:locus/src/models/theme.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'src/controllers/auth/auth.dart';
 import 'src/screens/onboarding_screen.dart';
+import 'src/services/auth_service.dart';
 
 Future<void> main() async {
   // Get all environment variables
@@ -29,9 +33,33 @@ Future<void> main() async {
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
     url: dotenv.env['SUPABASE_URL']!,
   );
-
   // Run Application
-  runApp(const MyApp());
+  runApp(
+    MultiRepositoryProvider(
+      providers: [
+        // FlutterSecureStorage
+        RepositoryProvider<FlutterSecureStorage>(
+            create: (_) => const FlutterSecureStorage()),
+        // FlutterAppAuth
+        RepositoryProvider<FlutterAppAuth>(
+            create: (_) => const FlutterAppAuth()),
+        RepositoryProvider<AuthService>(
+          create: (c) => AuthServiceImpl(
+            Supabase.instance.client,
+            dotenv.env['ANDROID_CLIENT_ID']!
+          ),
+        ),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (c) => AuthCubit(c.read(), c.read()),
+          ),
+        ],
+        child: const MyApp(),
+      ),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

@@ -1,13 +1,20 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../controllers/auth/auth.dart';
 import '../util/custom_text_form_field.dart';
 
 class VerifyEmailWithTokenForm extends StatefulWidget {
   final StreamController<int> currentPage;
+  final TextEditingController emailController;
 
-  const VerifyEmailWithTokenForm(this.currentPage, {super.key});
+  const VerifyEmailWithTokenForm(
+    this.currentPage,
+    this.emailController, {
+    super.key,
+  });
 
   @override
   State<VerifyEmailWithTokenForm> createState() =>
@@ -16,16 +23,21 @@ class VerifyEmailWithTokenForm extends StatefulWidget {
 
 class _VerifyEmailWithTokenFormState extends State<VerifyEmailWithTokenForm> {
   late GlobalKey<FormState> _formKey;
+  late TextEditingController _tokenController;
 
   @override
   void initState() {
     super.initState();
     _formKey = GlobalKey<FormState>();
+    _tokenController = TextEditingController();
   }
 
   @override
   Widget build(BuildContext context) {
-    // final height = MediaQuery.of(context).size.height;
+    final authCubit = AuthCubit(
+      context.read(),
+      context.read(),
+    );
     return SingleChildScrollView(
       primary: true,
       physics: const ClampingScrollPhysics(),
@@ -52,6 +64,15 @@ class _VerifyEmailWithTokenFormState extends State<VerifyEmailWithTokenForm> {
               child: CustomTextFormField(
                 "One-Time Token",
                 TextFormField(
+                  validator: (v) {
+                    if (v != null && v.trim().isNotEmpty) {
+                      if (v.length < 6) {
+                        return "Please enter a valid Token";
+                      }
+                    }
+                    return null;
+                  },
+                  controller: _tokenController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                       borderSide: BorderSide(
@@ -82,11 +103,20 @@ class _VerifyEmailWithTokenFormState extends State<VerifyEmailWithTokenForm> {
                     (_) => Colors.grey.shade50,
                   ),
                   backgroundColor: MaterialStateColor.resolveWith(
-                    (_) => Theme.of(context).colorScheme.secondary,
+                    (s) => s.contains(MaterialState.disabled)
+                        ? Theme.of(context).colorScheme.tertiary.withAlpha(255)
+                        : Theme.of(context).colorScheme.secondary,
                   ),
                 ),
-                onPressed: () {
-                  widget.currentPage.sink.add(2);
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    _formKey.currentState!.save();
+                    await authCubit.verifyToken(
+                      widget.emailController.text,
+                      _tokenController.text,
+                    );
+                    widget.currentPage.add(2);
+                  }
                 },
                 child: Text(
                   "Verify OTP",

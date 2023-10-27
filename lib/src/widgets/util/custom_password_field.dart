@@ -30,6 +30,7 @@ class _CustomPasswordFieldState extends State<CustomPasswordField> {
       SizedBox(
         width: MediaQuery.of(context).size.width,
         child: TextFormField(
+          validator: (v) => v != null && v.trim().isNotEmpty ? null : "Please enter a password",
           controller: widget.passwordController,
           maxLines: 1,
           obscureText: !isVisible,
