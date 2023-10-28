@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../controllers/auth/auth_cubit.dart';
-import '../../controllers/theme/theme_cubit.dart';
+import '../../controllers/auth/auth.dart';
 import '../../screens/home_page.dart';
 import '../util/custom_text_form_field.dart';
+import '../util/loading_dialog.dart';
 
 class SetUsernameForm extends StatefulWidget {
   final TextEditingController emailController;
-  
+
   const SetUsernameForm(
     this.emailController, {
     super.key,
@@ -33,120 +33,141 @@ class _SetUsernameFormState extends State<SetUsernameForm> {
 
   @override
   Widget build(BuildContext context) {
+    bool? usernameExists;
     final authCubit = AuthCubit(
       context.read(),
       context.read(),
     );
-    return SingleChildScrollView(
-      primary: true,
-      physics: const ClampingScrollPhysics(),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Text(
-            "Set Username and Name",
-            style: Theme.of(context).textTheme.headlineSmall!.apply(
-                  color: Colors.grey.shade800,
-                ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            "Enter a username (and optionally set your name) to sign in",
-            style: Theme.of(context).textTheme.bodyLarge,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                CustomTextFormField(
-                  "Username",
-                  TextFormField(
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    controller: usernameController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Colors.grey.shade600,
-                          width: 2.0,
+    return BlocListener<AuthCubit, AuthState>(
+      bloc: authCubit,
+      listener: (c, s) {
+        if (s is LoadingAuthState) {
+          showLoadingDialog(c);
+        } else if (s is LoadedAuthState) {
+          Navigator.pop(c);
+          Navigator.pushAndRemoveUntil(
+            c,
+            MaterialPageRoute(
+              builder: (_) => const MyHomePage(),
+            ),
+            (_) => false,
+          );
+        } else if (s is ErrorAuthState) {
+          Navigator.pop(c);
+          showErrorDialog(c, s.error);
+        }
+      },
+      child: SingleChildScrollView(
+        primary: true,
+        physics: const ClampingScrollPhysics(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text(
+              "Set Username and Name",
+              style: Theme.of(context).textTheme.headlineSmall!.apply(
+                    color: Colors.grey.shade800,
+                  ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              "Enter a username (and optionally set your name) to sign in",
+              style: Theme.of(context).textTheme.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  CustomTextFormField(
+                    "Username",
+                    TextFormField(
+                      onChanged: (v) async {
+                        usernameExists =
+                            await authCubit.checkIfUsernameExists(v);
+                      },
+                      controller: usernameController,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.grey.shade600,
+                            width: 2.0,
+                          ),
                         ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Colors.grey.shade600,
-                          width: 2.0,
+                        helperStyle: const TextStyle(color: Colors.green),
+                        errorText: ((usernameExists ?? false) && usernameController.text.isEmpty)
+                            ? "That username is taken!"
+                            : null,
+                        helperText: ((usernameExists ?? false) && usernameController.text.isEmpty)
+                            ? null
+                            : "That username is not taken",
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.grey.shade600,
+                            width: 2.0,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                CustomTextFormField(
-                  "Name",
-                  TextFormField(
-                    controller: nameController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Colors.grey.shade600,
-                          width: 2.0,
+                  CustomTextFormField(
+                    "Name",
+                    TextFormField(
+                      controller: nameController,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.grey.shade600,
+                            width: 2.0,
+                          ),
                         ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Colors.grey.shade600,
-                          width: 2.0,
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.grey.shade600,
+                            width: 2.0,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: ElevatedButton(
-              style: ButtonStyle(
-                shape: MaterialStateProperty.resolveWith(
-                  (_) => RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+            SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: ElevatedButton(
+                style: ButtonStyle(
+                  shape: MaterialStateProperty.resolveWith(
+                    (_) => RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  foregroundColor: MaterialStateColor.resolveWith(
+                    (_) => Colors.grey.shade50,
+                  ),
+                  backgroundColor: MaterialStateColor.resolveWith(
+                    (_) => Theme.of(context).colorScheme.secondary,
                   ),
                 ),
-                foregroundColor: MaterialStateColor.resolveWith(
-                  (_) => Colors.grey.shade50,
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    _formKey.currentState!.save();
+                    await authCubit.updateUsernameAndName(
+                      widget.emailController.text,
+                      usernameController.text,
+                      nameController.text,
+                    );
+                  }
+                },
+                child: Text(
+                  "Set Username and Name",
+                  style: TextStyle(color: Colors.grey.shade50, fontSize: 16),
                 ),
-                backgroundColor: MaterialStateColor.resolveWith(
-                  (_) => Theme.of(context).colorScheme.secondary,
-                ),
-              ),
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
-                  await authCubit.updateUsernameAndName(
-                    widget.emailController.text,
-                    usernameController.text,
-                    nameController.text,
-                  );
-                  // Navigator.pushAndRemoveUntil(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (_) => BlocProvider(
-                  //       create: (c) => c.read<ThemeCubit>(),
-                  //       child: const MyHomePage(),
-                  //     ),
-                  //   ),
-                  //   (_) => false,
-                  // );
-                }
-              },
-              child: Text(
-                "Set Username and Name",
-                style: TextStyle(color: Colors.grey.shade50, fontSize: 16),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

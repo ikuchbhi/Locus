@@ -1,8 +1,6 @@
-import 'dart:convert' show base64Url;
-import 'dart:math' show Random;
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/locus_user.dart';
 
@@ -13,130 +11,103 @@ abstract class AuthService {
   Future<LocusUser?> login(String email, String password);
 
   /// Login via Google OAuth
-  Future<AuthResponse> loginViaGoogle();
+  Future<User?> loginViaGoogle();
 
   /// Signup via Email+Password with a unique username
-  Future<void> signUp(
+  Future<User?> signUp(
     String email,
     String password,
   );
 
-  /// Verify the Token sent on the given email
+  /// Sends the email with a verification link
   /// If successful, allow signup else no
-  Future<bool> verifyToken(String email, String token);
+  Future<bool> sendVerificationLink();
 
   /// Checks if a user's username is unique
   Future<bool> checkIfUsernameExists(String username);
 
   /// Update username and name
   Future<void> updateUsernameAndName(
-      String email, String username, String name);
+    String email,
+    String username,
+    String name,
+  );
+
+  /// Checks if email has been verified
+  Future<bool> checkIfEmailVerified();
+
+  /// Resends the email verification link
+  Future<void> resendVerificationLink();
 }
 
 class AuthServiceImpl implements AuthService {
-  /// Fixed value for Google login
-  static const discoveryUrl =
-      'https://accounts.google.com/.well-known/openid-configuration';
+  static const USER_COLLECTION = "users";
 
-  /// OAuth Scopes
-  static const scopes = [
-    'openid',
-    'email',
-  ];
+  /// Firebase Client (for users table)
+  final FirebaseFirestore client;
 
-  /// Table names
-  // ignore: constant_identifier_names
-  static const USER_TABLE = "locus_users";
+  /// Firebase Auth client
+  final FirebaseAuth authClient;
 
-  /// Supabase Client to access custom Locus User table
-  final SupabaseClient client;
-
-  /// Supabase Auth client
-  final GoTrueClient supabaseAuth;
-
-  /// Supabase client ID
-  final String clientID;
-
-  /// Supabase redirectURL
-  final String _redirectURL;
-
-  AuthServiceImpl(
-    this.client,
-    this.clientID,
-  )   : supabaseAuth = client.auth,
-        _redirectURL = "${clientID.split('.').reversed.join('.')}:/";
-
-  static String _generateRandomString() {
-    final r = Random.secure();
-    return base64Url.encode(
-      List<int>.generate(
-        16,
-        (_) => r.nextInt(256),
-      ),
-    );
-  }
+  AuthServiceImpl(this.authClient, this.client);
 
   @override
   Future<LocusUser?> login(String email, String password) async {
-    final res = await supabaseAuth.signInWithPassword(
+    final res = await authClient.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
     if (res.user != null) {
+      // TODO: Fix login logic
       return LocusUser("", res.user!.email!, "", "");
     }
     return null;
   }
 
-  // TODO: Doesn't work for some reason
   @override
-  Future<AuthResponse> loginViaGoogle() async {
-    final rawNonce = _generateRandomString();
-    final googleSignIn = GoogleSignIn(
-      serverClientId: clientID,
-      scopes: [
-        'openid',
-        'email',
-      ],
+  Future<User?> loginViaGoogle() async {
+    final googleSignIn = await GoogleSignIn().signIn();
+    final googleUser = await googleSignIn?.authentication;
+    final cred = GoogleAuthProvider.credential(
+      accessToken: googleUser?.accessToken,
+      idToken: googleUser?.idToken,
     );
-    final googleUser = await googleSignIn.signIn();
-    final googleAuth = await googleUser!.authentication;
 
-    return supabaseAuth.signInWithIdToken(
-      provider: Provider.google,
-      idToken: googleAuth.idToken!,
-      accessToken: googleAuth.accessToken,
-      nonce: rawNonce,
-    );
+    final userCreds = await authClient.signInWithCredential(cred);
+    return userCreds.user;
   }
 
   @override
-  Future<void> signUp(
+  Future<User?> signUp(
     String email,
     String password,
   ) async {
-    await supabaseAuth.signInWithOtp(
-      shouldCreateUser: true,
+    final userCreds = await authClient.createUserWithEmailAndPassword(
       email: email,
-      emailRedirectTo: '${_redirectURL}signin-callback/',
+      password: password,
     );
+    return userCreds.user;
   }
 
   @override
-  Future<bool> verifyToken(String email, String token) async {
-    final res = await supabaseAuth.verifyOTP(
-      type: OtpType.email,
-      token: token,
-      email: email,
-    );
-    return res.user != null;
+  Future<bool> sendVerificationLink() async {
+    if (authClient.currentUser == null) {
+      return false;
+    } else {
+      await authClient.currentUser!.sendEmailVerification();
+      return true;
+    }
   }
 
   @override
   Future<bool> checkIfUsernameExists(String username) async {
-    final res =
-        await client.from('locus_user_data').select().eq('username', username);
-    return res.count > 1;
+    final usernames = await client
+        .collection(USER_COLLECTION)
+        .where('username', isEqualTo: username)
+        .count()
+        .get();
+    print("UserNames:    " + usernames.count.toString());
+    return usernames.count >= 2;
   }
 
   @override
@@ -145,9 +116,24 @@ class AuthServiceImpl implements AuthService {
     String username,
     String name,
   ) async {
-    await client.from(USER_TABLE).update({
+    await client.collection(USER_COLLECTION).doc(email).set({
       "username": username,
       "name": name,
-    }).eq('email', email);
+    });
+  }
+
+  @override
+  Future<bool> checkIfEmailVerified() async {
+    if (authClient.currentUser == null) {
+      return false;
+    } else {
+      authClient.currentUser!.reload();
+      return authClient.currentUser!.emailVerified;
+    }
+  }
+
+  @override
+  Future<void> resendVerificationLink() async {
+    await authClient.currentUser?.sendEmailVerification();
   }
 }

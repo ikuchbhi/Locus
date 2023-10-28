@@ -1,6 +1,7 @@
-import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -31,22 +32,20 @@ Future<void> main() async {
 
   // Initialise Firebase backend
   await Firebase.initializeApp(
-  options: DefaultFirebaseOptions.currentPlatform,
-);
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   // Run Application
   runApp(
     MultiRepositoryProvider(
       providers: [
         // FlutterSecureStorage
         RepositoryProvider<FlutterSecureStorage>(
-            create: (_) => const FlutterSecureStorage()),
-        // FlutterAppAuth
-        RepositoryProvider<FlutterAppAuth>(
-            create: (_) => const FlutterAppAuth()),
+          create: (_) => const FlutterSecureStorage(),
+        ),
         RepositoryProvider<AuthService>(
           create: (c) => AuthServiceImpl(
-            Supabase.instance.client,
-            dotenv.env['ANDROID_CLIENT_ID']!
+            FirebaseAuth.instance,
+            FirebaseFirestore.instance,
           ),
         ),
       ],

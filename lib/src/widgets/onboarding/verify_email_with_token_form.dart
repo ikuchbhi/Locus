@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../controllers/auth/auth.dart';
-import '../util/custom_text_form_field.dart';
 
 class VerifyEmailWithTokenForm extends StatefulWidget {
   final StreamController<int> currentPage;
@@ -22,14 +21,20 @@ class VerifyEmailWithTokenForm extends StatefulWidget {
 }
 
 class _VerifyEmailWithTokenFormState extends State<VerifyEmailWithTokenForm> {
-  late GlobalKey<FormState> _formKey;
-  late TextEditingController _tokenController;
+  late Timer timer;
+  late StreamController<bool> emailVerifiedController;
 
   @override
   void initState() {
     super.initState();
-    _formKey = GlobalKey<FormState>();
-    _tokenController = TextEditingController();
+    emailVerifiedController = StreamController.broadcast()..sink.add(false);
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    emailVerifiedController.close();
+    super.dispose();
   }
 
   @override
@@ -37,6 +42,15 @@ class _VerifyEmailWithTokenFormState extends State<VerifyEmailWithTokenForm> {
     final authCubit = AuthCubit(
       context.read(),
       context.read(),
+    );
+    timer = Timer.periodic(
+      const Duration(seconds: 2),
+      (_) async {
+        final verifiedVal = await authCubit.checkIfEmailVerified();
+        print("VV: $verifiedVal");
+        if(emailVerifiedController.isClosed){}
+        emailVerifiedController.sink.add(verifiedVal);
+      },
     );
     return SingleChildScrollView(
       primary: true,
@@ -54,99 +68,73 @@ class _VerifyEmailWithTokenFormState extends State<VerifyEmailWithTokenForm> {
             ),
             const SizedBox(height: 24),
             Text(
-              "Enter the token sent to your email ID below",
+              "Click on the link sent to your email to verify your profile",
               style: Theme.of(context).textTheme.bodyLarge,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            Form(
-              key: _formKey,
-              child: CustomTextFormField(
-                "One-Time Token",
-                TextFormField(
-                  validator: (v) {
-                    if (v != null && v.trim().isNotEmpty) {
-                      if (v.length < 6) {
-                        return "Please enter a valid Token";
-                      }
-                    }
-                    return null;
-                  },
-                  controller: _tokenController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey.shade600,
-                        width: 2.0,
+            StreamBuilder(
+              stream: emailVerifiedController.stream,
+              builder: (c, s) => Center(
+                child: (s.data ?? false)
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.check_circle_outline_outlined,
+                            color: Colors.green,
+                            size: 36,
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            "Successfully verified!",
+                            style: Theme.of(c)
+                                .textTheme
+                                .titleLarge!
+                                .copyWith(fontWeight: FontWeight.w100),
+                          ),
+                        ],
+                      )
+                    : const CircularProgressIndicator(),
+              ),
+            ),
+            const SizedBox(height: 24),
+            StreamBuilder<bool>(
+                stream: emailVerifiedController.stream,
+                builder: (c, s) {
+                  return SizedBox(
+                    width: MediaQuery.of(c).size.width,
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        shape: MaterialStateProperty.resolveWith(
+                          (_) => RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        foregroundColor: MaterialStateColor.resolveWith(
+                          (_) => Colors.grey.shade50,
+                        ),
+                        backgroundColor: MaterialStateColor.resolveWith(
+                          (_) => (s.data ?? false)
+                              ? Theme.of(c).colorScheme.secondary
+                              : Theme.of(c).primaryColor,
+                        ),
+                      ),
+                      onPressed: () async {
+                        if (s.data ?? false) {
+                          widget.currentPage.sink.add(2);
+                        } else {
+                          await authCubit.resendVerificationLink();
+                        }
+                      },
+                      child: Text(
+                        (s.data ?? false) ? "Next" : "Resend",
+                        style:
+                            TextStyle(color: Colors.grey.shade50, fontSize: 16),
                       ),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey.shade600,
-                        width: 2.0,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: ElevatedButton(
-                style: ButtonStyle(
-                  shape: MaterialStateProperty.resolveWith(
-                    (_) => RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  foregroundColor: MaterialStateColor.resolveWith(
-                    (_) => Colors.grey.shade50,
-                  ),
-                  backgroundColor: MaterialStateColor.resolveWith(
-                    (s) => s.contains(MaterialState.disabled)
-                        ? Theme.of(context).colorScheme.tertiary.withAlpha(255)
-                        : Theme.of(context).colorScheme.secondary,
-                  ),
-                ),
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    await authCubit.verifyToken(
-                      widget.emailController.text,
-                      _tokenController.text,
-                    );
-                    widget.currentPage.add(2);
-                  }
-                },
-                child: Text(
-                  "Verify OTP",
-                  style: TextStyle(color: Colors.grey.shade50, fontSize: 16),
-                ),
-              ),
-            ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: ElevatedButton(
-                style: ButtonStyle(
-                  shape: MaterialStateProperty.resolveWith(
-                    (_) => RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  foregroundColor: MaterialStateColor.resolveWith(
-                    (_) => Colors.grey.shade50,
-                  ),
-                  backgroundColor: MaterialStateColor.resolveWith(
-                    (_) => Theme.of(context).primaryColor,
-                  ),
-                ),
-                onPressed: () {},
-                child: Text(
-                  "Resend OTP",
-                  style: TextStyle(color: Colors.grey.shade50, fontSize: 16),
-                ),
-              ),
-            ),
+                  );
+                }),
           ],
         ),
       ),

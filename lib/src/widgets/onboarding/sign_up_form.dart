@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../controllers/auth/auth.dart';
 import '../util/custom_password_field.dart';
 import '../util/custom_text_form_field.dart';
+import '../util/loading_dialog.dart';
 import 'google_sign_in_button.dart';
 import 'tnc.dart';
 
@@ -50,30 +51,12 @@ class _SignUpFormState extends State<SignUpForm> {
         bloc: authCubit,
         listener: (c, s) {
           if (s is LoadingAuthState) {
-            showDialog(
-              context: c,
-              barrierDismissible: false,
-              builder: (cc) => const AlertDialog(
-                title: Text("Loading"),
-                content: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                  ],
-                ),
-              ),
-            );
+            showLoadingDialog(c);
           } else if (s is ErrorAuthState) {
             Navigator.pop(c);
-            showDialog(
-              context: c,
-              builder: (cc) => AlertDialog(
-                title: const Text("An Error Occurred"),
-                content: Text(s.error),
-              ),
-            );
+            showErrorDialog(c, s.error);
           } else {
+            Navigator.pop(c);
             widget.currentPage.sink.add(1);
           }
         },
@@ -121,46 +104,46 @@ class _SignUpFormState extends State<SignUpForm> {
               TermsAndConditionsField(widget.tnc),
               const SizedBox(height: 8),
               StreamBuilder<bool>(
-                  stream: widget.tnc.stream,
-                  builder: (c, s) => SizedBox(
-                        width: MediaQuery.of(c).size.width,
-                        child: ElevatedButton(
-                          style: ButtonStyle(
-                            shape: MaterialStateProperty.resolveWith(
-                              (_) => RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            foregroundColor: MaterialStateColor.resolveWith(
-                              (_) => Colors.grey.shade50,
-                            ),
-                            backgroundColor: MaterialStateColor.resolveWith(
-                              (s) => s.contains(MaterialState.disabled)
-                                  ? Theme.of(c)
-                                      .colorScheme
-                                      .tertiary
-                                      .withAlpha(255)
-                                  : Theme.of(c).colorScheme.secondary,
-                            ),
-                          ),
-                          onPressed: (s.data ?? false)
-                              ? () async {
-                                  if (_key.currentState!.validate()) {
-                                    _key.currentState!.save();
-                                    await authCubit.signUp(
-                                      widget.emailController.text,
-                                      widget.passwordController.text,
-                                    );
-                                  }
-                                }
-                              : null,
-                          child: Text(
-                            "Sign Up",
-                            style: TextStyle(
-                                color: Colors.grey.shade50, fontSize: 16),
-                          ),
+                stream: widget.tnc.stream,
+                builder: (c, s) => SizedBox(
+                  width: MediaQuery.of(c).size.width,
+                  child: ElevatedButton(
+                    style: ButtonStyle(
+                      shape: MaterialStateProperty.resolveWith(
+                        (_) => RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      )),
+                      ),
+                      foregroundColor: MaterialStateColor.resolveWith(
+                        (_) => Colors.grey.shade50,
+                      ),
+                      backgroundColor: MaterialStateColor.resolveWith(
+                        (s) => s.contains(MaterialState.disabled)
+                            ? Theme.of(c).colorScheme.tertiary.withAlpha(255)
+                            : Theme.of(c).colorScheme.secondary,
+                      ),
+                    ),
+                    onPressed: (s.data ?? false)
+                        ? () async {
+                            if (_key.currentState!.validate()) {
+                              _key.currentState!.save();
+                              await authCubit.signUp(
+                                widget.emailController.text,
+                                widget.passwordController.text,
+                              );
+                            }
+                          }
+                        : null,
+                    child: Text(
+                      "Sign Up",
+                      style: TextStyle(
+                        color: Colors.grey.shade50,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: 6),
               const Divider(color: Colors.black, indent: 24, endIndent: 24),
               const SizedBox(height: 6),

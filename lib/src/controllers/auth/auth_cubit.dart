@@ -45,16 +45,15 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       emit(LoadingAuthState());
       final googleUser = await authService.loginViaGoogle();
-      // if(googleUser != null){
-      emit(
-        LoadedAuthState(
-          LocusUser("", googleUser.user!.email!, "", ""),
-        ),
-      );
-      // }
-    } catch (e, st) {
-      print(e);
-      print(st);
+      if (googleUser != null) {
+        emit(
+          LoadedAuthState(
+            LocusUser(googleUser.email!, googleUser.email!, "", ""),
+          ),
+        );
+      }
+    } catch (e) {
+      emit(ErrorAuthState(e.toString()));
     }
   }
 
@@ -71,22 +70,25 @@ class AuthCubit extends Cubit<AuthState> {
     } catch (e) {
       emit(ErrorAuthState(e.toString()));
     }
-    // emit(LoadedAuthState(user));
+    emit(LoadedAuthState(LocusUser("", email, password, "")));
   }
 
   /// Sends an Email with a token
   /// If the user enters it successfully, they are signed up
   /// Else, no
-  Future<void> verifyToken(String email, String token) async {
+  Future<void> sendVerificationLink() async {
     try {
+      final user =
+          (state is LoadedAuthState) ? (state as LoadedAuthState).user : null;
       emit(LoadingAuthState());
-      await authService.verifyToken(email, token);
+      await authService.sendVerificationLink();
+      emit(LoadedAuthState(user));
     } catch (e) {
       emit(const ErrorAuthState("Invalid token"));
     }
   }
 
-  /// Checks if a username is unique
+  /// Checks if a username exists
   Future<bool> checkIfUsernameExists(String username) async {
     return await authService.checkIfUsernameExists(username);
   }
@@ -98,11 +100,27 @@ class AuthCubit extends Cubit<AuthState> {
     String name,
   ) async {
     try {
+      final user =
+          (state is LoadedAuthState) ? (state as LoadedAuthState).user : null;
       emit(LoadingAuthState());
       await authService.updateUsernameAndName(email, username, name);
-      // emit(LoadedAuthState(user));
+      emit(
+        LoadedAuthState(
+          LocusUser(username, email, name, user?.bioData ?? ""),
+        ),
+      );
     } catch (e) {
       emit(ErrorAuthState(e.toString()));
     }
+  }
+
+  /// Check's if a User has verified their email
+  Future<bool> checkIfEmailVerified() async {
+    return authService.checkIfEmailVerified();
+  }
+
+  /// Resend's the email verification link
+  Future<void> resendVerificationLink() async {
+    await authService.resendVerificationLink();
   }
 }
