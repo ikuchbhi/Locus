@@ -8,8 +8,9 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:locus/src/controllers/theme/theme_cubit.dart';
 import 'package:locus/src/models/theme.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
 
+import 'firebase_options.dart';
 import 'src/controllers/auth/auth.dart';
 import 'src/screens/onboarding_screen.dart';
 import 'src/services/auth_service.dart';
@@ -28,11 +29,10 @@ Future<void> main() async {
         : await getApplicationDocumentsDirectory(),
   );
 
-  // Initialise Supabase backend
-  await Supabase.initialize(
-    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
-    url: dotenv.env['SUPABASE_URL']!,
-  );
+  // Initialise Firebase backend
+  await Firebase.initializeApp(
+  options: DefaultFirebaseOptions.currentPlatform,
+);
   // Run Application
   runApp(
     MultiRepositoryProvider(
