@@ -55,7 +55,7 @@ class _SignUpFormState extends State<SignUpForm> {
           } else if (s is ErrorAuthState) {
             Navigator.pop(c);
             showErrorDialog(c, s.error);
-          } else {
+          } else if(s is LoadedAuthState) {
             Navigator.pop(c);
             widget.currentPage.sink.add(1);
           }

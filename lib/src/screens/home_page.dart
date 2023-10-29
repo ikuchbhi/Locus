@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
+// ignore_for_file: use_build_context_synchronously
 
-// import '../controllers/theme/theme_cubit.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../controllers/auth/auth_cubit.dart';
 import '../widgets/home/locus_image_only_post.dart';
 import '../widgets/home/locus_image_with_caption_post.dart';
 import '../widgets/home/locus_post.dart';
@@ -24,6 +26,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final authCubit = AuthCubit(context.read(), context.read());
     posts = [
       ...List.generate(
         5,
@@ -76,7 +79,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 query: query,
               );
               if (q != null) {
-                // ignore: use_build_context_synchronously
                 Navigator.push(
                   context,
                   PageRouteBuilder(
@@ -141,13 +143,16 @@ class _MyHomePageState extends State<MyHomePage> {
                   leading: Icon(Icons.logout_rounded),
                   title: Text("Logout"),
                 ),
-                onTap: () => Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const OnboardingScreen(),
-                  ),
-                  (_) => false,
-                ),
+                onTap: ()  async {
+                  await authCubit.logOut();
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const OnboardingScreen(),
+                    ),
+                    (_) => false,
+                  );
+                },
               ),
             ],
             icon: const Icon(Icons.more_vert_rounded),

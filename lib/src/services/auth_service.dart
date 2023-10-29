@@ -8,10 +8,13 @@ import '../models/locus_user.dart';
 /// Defines what all methods should be present in an AuthService
 abstract class AuthService {
   /// Login via Email+Password and return a LocusUser if valid else null
-  Future<LocusUser?> login(String email, String password);
+  Future<LocusUser?> loginViaEmail(String email, String password);
 
   /// Login via Google OAuth
   Future<User?> loginViaGoogle();
+
+  /// Logs a user out
+  Future<void> logOut();
 
   /// Signup via Email+Password with a unique username
   Future<User?> signUp(
@@ -38,6 +41,15 @@ abstract class AuthService {
 
   /// Resends the email verification link
   Future<void> resendVerificationLink();
+
+  /// Logs in via username
+  Future<LocusUser?> loginViaUsername(String username, String password);
+
+  /// Sends the reset password email
+  Future sendResetPasswordEmail(String email);
+
+  /// Gets the corresponding Locus User from Firestore
+  Future<LocusUser> getLocusUserFromOAuth(String email);
 }
 
 class AuthServiceImpl implements AuthService {
@@ -52,7 +64,7 @@ class AuthServiceImpl implements AuthService {
   AuthServiceImpl(this.authClient, this.client);
 
   @override
-  Future<LocusUser?> login(String email, String password) async {
+  Future<LocusUser?> loginViaEmail(String email, String password) async {
     final res = await authClient.signInWithEmailAndPassword(
       email: email,
       password: password,
@@ -106,7 +118,6 @@ class AuthServiceImpl implements AuthService {
         .where('username', isEqualTo: username)
         .count()
         .get();
-    print("UserNames:    " + usernames.count.toString());
     return usernames.count >= 2;
   }
 
@@ -117,8 +128,10 @@ class AuthServiceImpl implements AuthService {
     String name,
   ) async {
     await client.collection(USER_COLLECTION).doc(email).set({
+      "email": email,
       "username": username,
       "name": name,
+      "biodata": "",
     });
   }
 
@@ -135,5 +148,50 @@ class AuthServiceImpl implements AuthService {
   @override
   Future<void> resendVerificationLink() async {
     await authClient.currentUser?.sendEmailVerification();
+  }
+
+  @override
+  Future<LocusUser?> loginViaUsername(String username, String password) async {
+    final user = await client
+        .collection(USER_COLLECTION)
+        .where('username', isEqualTo: username)
+        .get();
+    if (user.docs.isEmpty) {
+      return null;
+    } else {
+      return LocusUser(
+        user.docs[0].get('username'),
+        user.docs[0].get('email'),
+        user.docs[0].get('name'),
+        user.docs[0].get('biodata'),
+      );
+    }
+  }
+
+  @override
+  Future<void> logOut() async {
+    await authClient.signOut();
+    if (GoogleSignIn().currentUser != null) {
+      await GoogleSignIn().disconnect();
+    }
+  }
+
+  @override
+  Future sendResetPasswordEmail(String email) async {
+    await authClient.sendPasswordResetEmail(email: email);
+  }
+
+  @override
+  Future<LocusUser> getLocusUserFromOAuth(String email) async {
+    final res = await client
+        .collection(USER_COLLECTION)
+        .where('email', isEqualTo: email)
+        .get();
+    return LocusUser(
+      res.docs[0].get('username'),
+      res.docs[0].get('email'),
+      res.docs[0].get('name'),
+      res.docs[0].get('biodata'),
+    );
   }
 }

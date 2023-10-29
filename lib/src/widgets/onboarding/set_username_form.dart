@@ -5,6 +5,7 @@ import '../../controllers/auth/auth.dart';
 import '../../screens/home_page.dart';
 import '../util/custom_text_form_field.dart';
 import '../util/loading_dialog.dart';
+import 'username_checker_field.dart';
 
 class SetUsernameForm extends StatefulWidget {
   final TextEditingController emailController;
@@ -33,7 +34,6 @@ class _SetUsernameFormState extends State<SetUsernameForm> {
 
   @override
   Widget build(BuildContext context) {
-    bool? usernameExists;
     final authCubit = AuthCubit(
       context.read(),
       context.read(),
@@ -80,37 +80,7 @@ class _SetUsernameFormState extends State<SetUsernameForm> {
               key: _formKey,
               child: Column(
                 children: [
-                  CustomTextFormField(
-                    "Username",
-                    TextFormField(
-                      onChanged: (v) async {
-                        usernameExists =
-                            await authCubit.checkIfUsernameExists(v);
-                      },
-                      controller: usernameController,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.grey.shade600,
-                            width: 2.0,
-                          ),
-                        ),
-                        helperStyle: const TextStyle(color: Colors.green),
-                        errorText: ((usernameExists ?? false) && usernameController.text.isEmpty)
-                            ? "That username is taken!"
-                            : null,
-                        helperText: ((usernameExists ?? false) && usernameController.text.isEmpty)
-                            ? null
-                            : "That username is not taken",
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.grey.shade600,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                  UsernameCheckerField(usernameController),
                   CustomTextFormField(
                     "Name",
                     TextFormField(

@@ -43,11 +43,11 @@ class _VerifyEmailWithTokenFormState extends State<VerifyEmailWithTokenForm> {
       context.read(),
       context.read(),
     );
+    authCubit.sendVerificationLink();
     timer = Timer.periodic(
       const Duration(seconds: 2),
       (_) async {
         final verifiedVal = await authCubit.checkIfEmailVerified();
-        print("VV: $verifiedVal");
         if(emailVerifiedController.isClosed){}
         emailVerifiedController.sink.add(verifiedVal);
       },

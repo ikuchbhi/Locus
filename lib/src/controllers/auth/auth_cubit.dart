@@ -22,13 +22,13 @@ class AuthCubit extends Cubit<AuthState> {
     this.localStorage,
   ) : super(LoadingAuthState());
 
-  /// FlutterSecureStorage's key
+  /// FlutterSecureStorage's user and page key
   static const _userKey = "user";
 
   /// Logs a User in (and saves them locally)
-  Future<void> login(String email, String password) async {
+  Future<void> loginViaEmail(String email, String password) async {
     emit(LoadingAuthState());
-    final user = await authService.login(email, password);
+    final user = await authService.loginViaEmail(email, password);
     if (user == null) {
       localStorage.write(key: _userKey, value: null);
       emit(const ErrorAuthState("Invalid credentials"));
@@ -41,16 +41,46 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  /// Logs a User in (and saves them locally)
+  Future<void> loginViaUsername(String username, String password) async {
+    emit(LoadingAuthState());
+    final user = await authService.loginViaUsername(username, password);
+    if (user == null) {
+      localStorage.write(key: _userKey, value: null);
+      emit(const ErrorAuthState("Invalid credentials"));
+    } else {
+      localStorage.write(
+        key: _userKey,
+        value: jsonEncode(user.toJson()),
+      );
+      emit(LoadedAuthState(user));
+    }
+  }
+
+  Future<void> checkAuthStatus() async {
+    try {
+      final userJson = await localStorage.read(key: _userKey);
+      final user =
+          userJson == null ? null : LocusUser.fromJson(jsonDecode(userJson));
+      emit(LoadedAuthState(user));
+    } catch (e) {
+      emit(ErrorAuthState(e.toString()));
+    }
+  }
+
   Future<void> loginViaGoogle() async {
     try {
       emit(LoadingAuthState());
       final googleUser = await authService.loginViaGoogle();
       if (googleUser != null) {
-        emit(
-          LoadedAuthState(
-            LocusUser(googleUser.email!, googleUser.email!, "", ""),
-          ),
+        final locusUser = await authService.getLocusUserFromOAuth(
+          googleUser.email!,
         );
+        localStorage.write(
+          key: _userKey,
+          value: jsonEncode(locusUser.toJson()),
+        );
+        emit(LoadedAuthState(locusUser));
       }
     } catch (e) {
       emit(ErrorAuthState(e.toString()));
@@ -63,14 +93,23 @@ class AuthCubit extends Cubit<AuthState> {
   ) async {
     try {
       emit(LoadingAuthState());
-      await authService.signUp(
+      final user = await authService.signUp(
         email,
         password,
       );
+      if (user != null) {
+        final userVal = LocusUser(
+          user.uid,
+          user.email!,
+          user.displayName ?? "",
+          "",
+        );
+        localStorage.write(key: _userKey, value: jsonEncode(userVal.toJson()));
+        emit(LoadedAuthState(userVal));
+      }
     } catch (e) {
       emit(ErrorAuthState(e.toString()));
     }
-    emit(LoadedAuthState(LocusUser("", email, password, "")));
   }
 
   /// Sends an Email with a token
@@ -82,7 +121,9 @@ class AuthCubit extends Cubit<AuthState> {
           (state is LoadedAuthState) ? (state as LoadedAuthState).user : null;
       emit(LoadingAuthState());
       await authService.sendVerificationLink();
-      emit(LoadedAuthState(user));
+      emit(LoadedAuthState(
+        user,
+      ));
     } catch (e) {
       emit(const ErrorAuthState("Invalid token"));
     }
@@ -104,11 +145,9 @@ class AuthCubit extends Cubit<AuthState> {
           (state is LoadedAuthState) ? (state as LoadedAuthState).user : null;
       emit(LoadingAuthState());
       await authService.updateUsernameAndName(email, username, name);
-      emit(
-        LoadedAuthState(
-          LocusUser(username, email, name, user?.bioData ?? ""),
-        ),
-      );
+      final locusUser = LocusUser(username, email, name, user?.bioData ?? "");
+      localStorage.write(key: _userKey, value: jsonEncode(locusUser.toJson()));
+      emit(LoadedAuthState(locusUser));
     } catch (e) {
       emit(ErrorAuthState(e.toString()));
     }
@@ -122,5 +161,22 @@ class AuthCubit extends Cubit<AuthState> {
   /// Resend's the email verification link
   Future<void> resendVerificationLink() async {
     await authService.resendVerificationLink();
+  }
+
+  /// Sends the password reset email
+  Future<void> sendResetPasswordEmail(String email) async {
+    try {
+      emit(LoadingAuthState());
+      await authService.sendResetPasswordEmail(email);
+      emit(SuccessPasswordResetState());
+    } catch (e) {
+      emit(FailurePasswordResetState(e.toString()));
+    }
+  }
+
+  /// Logs a user out
+  Future<void> logOut() async {
+    localStorage.write(key: _userKey, value: null);
+    await authService.logOut();
   }
 }

@@ -8,6 +8,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:locus/src/controllers/theme/theme_cubit.dart';
 import 'package:locus/src/models/theme.dart';
+import 'package:locus/src/screens/home_page.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -67,6 +68,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeCubit = ThemeCubit();
+    final authCubit = AuthCubit(context.read(), context.read());
     return BlocBuilder<ThemeCubit, LocusTheme>(
       bloc: themeCubit,
       builder: (c, s) => MaterialApp(
@@ -75,9 +77,33 @@ class MyApp extends StatelessWidget {
         themeAnimationDuration: const Duration(milliseconds: 250),
         title: 'Locus',
         theme: s.theme,
-        home: BlocProvider.value(
-          value: themeCubit,
-          child: const OnboardingScreen(),
+        home: BlocBuilder<AuthCubit, AuthState>(
+          bloc: authCubit,
+          builder: (c, s) {
+            if (s is LoadingAuthState) {
+              authCubit.checkAuthStatus();
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            } else if (s is LoadedAuthState) {
+              return s.user == null
+                  ? const OnboardingScreen()
+                  : const MyHomePage();
+            } else if (s is ErrorAuthState) {
+              return Scaffold(
+                appBar: AppBar(
+                  title: const Text("Error"),
+                ),
+                body: Center(
+                  child: Text(
+                    s.error,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                ),
+              );
+            }
+            return Container();
+          },
         ),
       ),
     );
