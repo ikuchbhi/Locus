@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../controllers/auth/auth_cubit.dart';
+import '../models/locus_user.dart';
 import '../widgets/home/locus_image_only_post.dart';
 import '../widgets/home/locus_image_with_caption_post.dart';
 import '../widgets/home/locus_post.dart';
@@ -15,7 +16,8 @@ import 'search_screen.dart';
 import 'settings_screen.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+  final LocusUser user;
+  const MyHomePage(this.user, {super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -134,7 +136,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 onTap: () => Navigator.push(
                   c,
                   MaterialPageRoute(
-                    builder: (_) => const SettingsScreen(),
+                    builder: (_) => SettingsScreen(widget.user.emailAddress),
                   ),
                 ),
               ),
@@ -143,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   leading: Icon(Icons.logout_rounded),
                   title: Text("Logout"),
                 ),
-                onTap: ()  async {
+                onTap: () async {
                   await authCubit.logOut();
                   Navigator.pushAndRemoveUntil(
                     context,

@@ -2,7 +2,6 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import '../../models/theme.dart';
 
-///
 class ThemeCubit extends HydratedCubit<LocusTheme> {
   ThemeCubit() : super(LocusTheme(ThemeType.light));
 

@@ -48,7 +48,7 @@ class _SetUsernameFormState extends State<SetUsernameForm> {
           Navigator.pushAndRemoveUntil(
             c,
             MaterialPageRoute(
-              builder: (_) => const MyHomePage(),
+              builder: (_) => MyHomePage(s.user!),
             ),
             (_) => false,
           );

@@ -16,6 +16,7 @@ import 'firebase_options.dart';
 import 'src/controllers/auth/auth.dart';
 import 'src/screens/onboarding_screen.dart';
 import 'src/services/auth_service.dart';
+import 'src/services/settings_service.dart';
 
 Future<void> main() async {
   // Get all environment variables
@@ -49,11 +50,19 @@ Future<void> main() async {
             FirebaseFirestore.instance,
           ),
         ),
+        RepositoryProvider<SettingsService>(
+          create: (c) => SettingsServiceImpl(
+            FirebaseFirestore.instance,
+          ),
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
-          BlocProvider(
+          BlocProvider<AuthCubit>(
             create: (c) => AuthCubit(c.read(), c.read()),
+          ),
+          BlocProvider<ThemeCubit>(
+            create: (c) => ThemeCubit(),
           ),
         ],
         child: const MyApp(),
@@ -67,7 +76,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeCubit = ThemeCubit();
+    final themeCubit = BlocProvider.of<ThemeCubit>(context);
     final authCubit = AuthCubit(context.read(), context.read());
     return BlocBuilder<ThemeCubit, LocusTheme>(
       bloc: themeCubit,
@@ -88,7 +97,7 @@ class MyApp extends StatelessWidget {
             } else if (s is LoadedAuthState) {
               return s.user == null
                   ? const OnboardingScreen()
-                  : const MyHomePage();
+                  : MyHomePage(s.user!);
             } else if (s is ErrorAuthState) {
               return Scaffold(
                 appBar: AppBar(
