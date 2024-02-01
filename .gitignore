@@ -53,3 +53,13 @@ web/
 linux/
 macos/
 windows/
+
+# Firebase-generated files
+.firebaserc
+firebase.json
+firestore.indexes.json
+firestore.rules
+storage.rules
+google-services.json
+firebase_app_id_file.json
+GoogleService-Info.plist

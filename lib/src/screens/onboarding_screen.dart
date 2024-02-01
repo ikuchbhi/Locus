@@ -130,6 +130,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                   backgroundColor: Theme.of(context)
                                       .primaryColor
                                       .withAlpha(175),
+                                  isDismissible: false,
                                   enableDrag: true,
                                   useSafeArea: true,
                                 ),
